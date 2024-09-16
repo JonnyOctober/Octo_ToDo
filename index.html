@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Old-School Green To-Do List</title>
+    <style>
+        body {
+            background-color: black;
+            color: #00FF00; /* Classic green text */
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #todo-wrapper {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+        }
+        #todo-list {
+            white-space: pre-wrap;
+            display: inline-block;
+        }
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 24px;
+            background-color: #00FF00; /* Green cursor */
+            vertical-align: bottom;
+            margin-left: 5px;
+            animation: blink 1.6s steps(1) infinite; /* Blinking slower */
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        /* Less prominent input and button styling */
+        input, button {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 18px; /* Smaller size for less prominence */
+            background-color: #333; /* Dark grey background */
+            color: #aaa; /* Light grey text */
+            border: 1px solid #555; /* Subtle grey border */
+            padding: 5px;
+            margin-right: 10px;
+        }
+        button {
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #555;
+            color: #fff; /* Slight color change on hover */
+        }
+        /* Positioning the input and button at the bottom */
+        #input-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Centered to-do list and cursor -->
+    <div id="todo-wrapper">
+        <div id="todo-list"></div><span class="cursor" id="cursor"></span>
+    </div>
+
+    <!-- Input field and button for adding new items at the bottom -->
+    <div id="input-section">
+        <input type="text" id="new-item" placeholder="Add a new item">
+        <button onclick="addNewItem()">Add</button>
+    </div>
+
+    <script>
+        // Load to-do list from localStorage or default to these items
+        let todoList = JSON.parse(localStorage.getItem('todoList')) || [
+            "Finish Raspberry Pi project",
+            "Walk the dog",
+            "Prepare lunch",
+            "Complete work report",
+            "Call the electrician"
+        ];
+
+        const todoElement = document.getElementById("todo-list");
+        const cursorElement = document.getElementById("cursor");
+        let currentItemIndex = 0;
+        let currentCharIndex = 0;
+        let typingSpeed = 100; // Milliseconds per character
+        let pauseTime = 2000;  // Pause between each item
+        let blinkTimeBeforeStart = 5000; // 5 seconds blinking before starting to type
+
+        // Hide the cursor when typing starts
+        function hideCursor() {
+            cursorElement.style.display = 'none';
+        }
+
+        // Show the cursor when the typing is paused
+        function showCursor() {
+            cursorElement.style.display = 'inline-block';
+        }
+
+        // Save the to-do list to localStorage
+        function saveTodoList() {
+            localStorage.setItem('todoList', JSON.stringify(todoList));
+        }
+
+        // Function to handle text animation
+        function typeText() {
+            if (currentItemIndex < todoList.length) {
+                const currentItem = todoList[currentItemIndex];
+                
+                // Before typing the text, blink the cursor for a while
+                if (currentCharIndex === 0) {
+                    showCursor();
+                    setTimeout(() => {
+                        hideCursor();
+                        typeNextChar();
+                    }, blinkTimeBeforeStart); // The cursor will blink for 5 seconds before typing starts
+                } else {
+                    typeNextChar();
+                }
+            } else {
+                // Loop the to-do list once all items are displayed
+                currentItemIndex = 0;
+                typeText();
+            }
+        }
+
+        function typeNextChar() {
+            const currentItem = todoList[currentItemIndex];
+            if (currentCharIndex < currentItem.length) {
+                // Display one character at a time
+                todoElement.textContent += currentItem.charAt(currentCharIndex);
+                currentCharIndex++;
+                setTimeout(typeText, typingSpeed);
+            } else {
+                // Pause before moving to the next item and make the cursor reappear
+                setTimeout(() => {
+                    currentCharIndex = 0;
+                    currentItemIndex++;
+                    todoElement.textContent = ""; // Clear for the next item
+                    showCursor();
+                    typeText();
+                }, pauseTime);
+            }
+        }
+
+        // Start typing the to-do list when the page loads
+        typeText();
+
+        // Function to add new items to the to-do list and save them to localStorage
+        function addNewItem() {
+            const newItemInput = document.getElementById("new-item");
+            const newItem = newItemInput.value.trim();
+            
+            if (newItem) {
+                todoList.push(newItem); // Add the new item to the to-do list
+                newItemInput.value = ''; // Clear the input field
+                saveTodoList(); // Save the updated list to localStorage
+                alert(`Added "${newItem}" to the list!`);
+            } else {
+                alert("Please enter a valid item.");
+            }
+        }
+    </script>
+</body>
+</html>

@@ -2,3 +2,8 @@
 ssh-keygen*
 *.pub
 ssh-keygen*
+id_*
+*.key
+*_rsa
+*_dsa
+*_ed25519
